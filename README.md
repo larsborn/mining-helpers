@@ -1,2 +1,2 @@
 # miner-zabbix
-Scripts to send Mining Stats to Zabbix
+Scripts to send ETH Claymore Mining Stats to Zabbix
