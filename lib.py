@@ -40,13 +40,32 @@ class ZabbixSender(object):
         return '%s: %s' % (name, value)
 
 
+class GpuStats(object):
+    def __init__(self, eth_hashrate, temperature=None, fan_speed=None):
+        self.eth_hashrate = eth_hashrate
+        self.temperature = temperature
+        self.fan_speed = fan_speed
+
+
 class ClaymoreMinerStats(object):
     def __init__(self, json):
-        self.version, runs_for_minutes, eth_mining_stats, eth_hashrates, dcr_mining_stats, dcr_hashrates, gpu_stats, self.mining_pool, share_stats = \
-            json['result']
+        self.version, runs_for_minutes, eth_mining_stats, eth_hashrates, dcr_mining_stats, dcr_hashrates, gpu_stats, \
+        self.mining_pool, share_stats = json['result']
+
+        eth_hashrates = eth_hashrates.split(';')
+        stats = gpu_stats.split(';')
+        if len(stats): assert (len(stats) == len(eth_hashrates) * 2)
+
+        self.gpus = []
+        for i, hashrate in enumerate(eth_hashrates):
+            if stats:
+                temperature = stats[i * 2]
+                fan_speed = stats[i * 2 + 1]
+                self.gpus.append(GpuStats(hashrate, temperature, fan_speed))
+            else:
+                self.gpus.append(GpuStats(hashrate))
 
         self.runs_for_minutes = int(runs_for_minutes)
-        self.hashrates = [int(hashrate) for hashrate in eth_hashrates.split(';')]
 
         spl = eth_mining_stats.split(';')
         self.total_hashrate = int(spl[0])
