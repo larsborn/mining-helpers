@@ -84,20 +84,24 @@ class ClaymoreMinerStats(object):
 
 
 class Transaction(object):
-    def __init__(self, transaction_id, some_data, timestamp, amount):
+    def __init__(self, transaction_id, some_data, timestamp, amount, fee=None):
         self.transaction_id = transaction_id
         self.some_data = some_data
         self.timestamp = timestamp
         self.amount = amount
+        self.fee = fee
 
     def __repr__(self):
-        return '<Transaction %s; %s; %s; %s>' % (self.transaction_id, self.some_data, self.timestamp, self.amount)
+        return '<Transaction %s; %s; %s; %s; %s>' % (
+            self.transaction_id, self.some_data, self.timestamp, self.amount, self.fee
+        )
 
     def __eq__(self, other):
         return self.transaction_id == other.transaction_id \
                and self.some_data == other.some_data \
                and self.timestamp == other.timestamp \
-               and self.amount == other.amount
+               and self.amount == other.amount \
+               and self.fee == other.fee
 
 
 class Factory(object):
@@ -112,11 +116,17 @@ class Factory(object):
 
     @staticmethod
     def from_kraken(id, trade):
-        return Transaction(id, trade['vol'], datetime.datetime.fromtimestamp(trade['closetm']), trade['cost'])
+        return Transaction(
+            id,
+            trade['vol'],
+            datetime.datetime.fromtimestamp(trade['closetm']),
+            trade['cost'],
+            trade['fee']
+        )
 
     @staticmethod
     def from_csv(row):
-        return Transaction(row[0], row[1], parse_date(row[2]), row[3])
+        return Transaction(row[0], row[1], parse_date(row[2]), row[3], row[4] if len(row) > 4 else None)
 
 
 def sync_to_csv(csv_filename, data):
@@ -131,4 +141,10 @@ def sync_to_csv(csv_filename, data):
 
     fp = csv.writer(open(csv_filename, 'wb'))
     for transaction in data:
-        fp.writerow([transaction.transaction_id, transaction.some_data, transaction.timestamp, transaction.amount])
+        fp.writerow([
+            transaction.transaction_id,
+            transaction.some_data,
+            transaction.timestamp,
+            transaction.amount,
+            transaction.fee if transaction.fee else ''
+        ])
