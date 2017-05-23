@@ -1,5 +1,9 @@
 import subprocess
 import re
+import os
+import csv
+from dateutil.parser import parse as parse_date
+import datetime
 
 
 class ZabbixSenderException(Exception):
@@ -18,8 +22,11 @@ class ZabbixSender(object):
 
     def _execute_sender(self, arguments):
         self.last_command = [self.sender_path, '-c', self.config_path] + arguments
-        output, error = subprocess.Popen(self.last_command, stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE).communicate()
+        output, error = subprocess.Popen(
+            self.last_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()
         if error: raise ZabbixSenderException(error)
 
         return output
@@ -74,3 +81,54 @@ class ClaymoreMinerStats(object):
 
         spl = share_stats.split(';')
         self.incorrect_shares = int(spl[0])
+
+
+class Transaction(object):
+    def __init__(self, transaction_id, some_data, timestamp, amount):
+        self.transaction_id = transaction_id
+        self.some_data = some_data
+        self.timestamp = timestamp
+        self.amount = amount
+
+    def __repr__(self):
+        return '<Transaction %s; %s; %s; %s>' % (self.transaction_id, self.some_data, self.timestamp, self.amount)
+
+    def __eq__(self, other):
+        return self.transaction_id == other.transaction_id \
+               and self.some_data == other.some_data \
+               and self.timestamp == other.timestamp \
+               and self.amount == other.amount
+
+
+class Factory(object):
+    @staticmethod
+    def from_triple(triple, some_data):
+        return Transaction(
+            triple[2].get_text(),
+            some_data,
+            parse_date(triple[0].get_text()),
+            triple[1].get_text()
+        )
+
+    @staticmethod
+    def from_kraken(id, trade):
+        return Transaction(id, trade['vol'], datetime.datetime.fromtimestamp(trade['closetm']), trade['cost'])
+
+    @staticmethod
+    def from_csv(row):
+        return Transaction(row[0], row[1], parse_date(row[2]), row[3])
+
+
+def sync_to_csv(csv_filename, data):
+    factory = Factory()
+    if os.path.exists(csv_filename):
+        for row in csv.reader(open(csv_filename, 'rb')):
+            transaction = factory.from_csv(row)
+            if transaction not in data:
+                data.append(transaction)
+
+    data = sorted(data, key=lambda elem: elem.timestamp)
+
+    fp = csv.writer(open(csv_filename, 'wb'))
+    for transaction in data:
+        fp.writerow([transaction.transaction_id, transaction.some_data, transaction.timestamp, transaction.amount])
