@@ -101,7 +101,7 @@ class Transaction(object):
                and self.some_data == other.some_data \
                and self.timestamp == other.timestamp \
                and self.amount == other.amount \
-               and self.fee == other.fee
+               and self.fee == other.fee or (self.fee in ['', None] and other.fee in ['', None])
 
 
 class Factory(object):
