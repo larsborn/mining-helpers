@@ -148,3 +148,29 @@ def sync_to_csv(csv_filename, data):
             transaction.amount,
             transaction.fee if transaction.fee else ''
         ])
+
+class KrakenApiException(Exception):
+    pass
+
+
+class KrakenApi(object):
+    def __init__(self, base_command):
+        self.base_command = base_command
+
+    def get_balance(self, currency):
+        for line in self._exec(['balance']).split('\n'):
+            if line.startswith(currency):
+                return float(line[len(currency):].strip())
+
+    def sell_for_market_price(self, currency_pair, amount):
+        return self._exec(['place', '-p', currency_pair, '-t', 'market', 'sell', '%s' % amount])
+
+    def _exec(self, command):
+        output, error = subprocess.Popen(
+            [self.base_command] + command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()
+        if error: raise KrakenApiException(error)
+
+        return output
