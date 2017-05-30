@@ -14,7 +14,11 @@ for wallet in sys.argv[2:]:
     html_doc = requests.get(url).content
     soup = BeautifulSoup(html_doc, 'html.parser')
 
-    tbody = soup.find_all('tbody')[0]
+    tbodys = soup.find_all('tbody')
+    if len(tbodys) == 0:
+        continue
+
+    tbody = tbodys[0]
     tds = tbody.find_all('td')
     for i in range(0, len(tds), 3):
         data.append(factory.from_triple(tds[i:i + 3], wallet))
