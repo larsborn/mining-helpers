@@ -1,8 +1,10 @@
 import csv
 import requests
 import configparser
+import krakenex
+import datetime
 from dateutil.parser import parse as parse_date
-from itertools import islice
+from itertools import islice,groupby
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -59,14 +61,24 @@ class SEPA(object):
     def __eq__(self, other):
         return self.tid == other.tid
         
-trades  = []
-mines   = []
-sepas   = []        
-response = requests.get(exchangeurl)
-lines = csv.reader(response.text.splitlines() , delimiter=',')
-for line in lines:
-    t = trade(line)
-    trades.append(t)
+trades      = []
+mines       = []
+sepas       = []
+withdrawals = []
+deposits    = []
+
+k = krakenex.API()
+k.load_key('kraken.key')
+th = k.query_private('TradesHistory', {})
+for tr in th['result']['trades']:
+    if th['result']['trades'][tr]['type'] == "sell" and th['result']['trades'][tr]['pair'] == "XETHZEUR":
+        t =trade([  th['result']['trades'][tr]['ordertxid'],
+                    th['result']['trades'][tr]['vol'],
+                    datetime.datetime.fromtimestamp(th['result']['trades'][tr]['time']).strftime('%Y-%m-%d %H:%M:%S'),
+                    th['result']['trades'][tr]['cost'],
+                    th['result']['trades'][tr]['fee']])
+        trades.append(t)
+        
 trades.sort(key=lambda x: x.time, reverse=False)
         
 response = requests.get(poolurl)
