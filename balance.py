@@ -80,6 +80,20 @@ for tr in th['result']['trades']:
         trades.append(t)
         
 trades.sort(key=lambda x: x.time, reverse=False)
+tmptrades = []
+for key, group in groupby(trades, lambda x: x.tid):
+    sum_eth  = 0
+    sum_euro = 0 
+    sum_fee  = 0
+    time = ""
+    for thing in group:
+        sum_eth  += thing.amount_eth
+        sum_euro += thing.amount_euro
+        sum_fee  += thing.fee
+        time      = thing.time
+    t =trade([key,sum_eth,time.strftime('%Y-%m-%d %H:%M:%S'),sum_euro,sum_fee])
+    tmptrades.append(t)
+trades = tmptrades 
         
 response = requests.get(poolurl)
 lines = csv.reader(response.text.splitlines() , delimiter=',')
