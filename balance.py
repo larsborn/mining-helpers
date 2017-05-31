@@ -132,8 +132,6 @@ d = k.query_private('Ledgers', {'type':'deposit', 'asset':'XETH'})
 for dl in d['result']['ledger']:
     t = deposit([d['result']['ledger'][dl]['refid'], d['result']['ledger'][dl]['amount'], datetime.datetime.fromtimestamp(d['result']['ledger'][dl]['time']).strftime('%Y-%m-%d %H:%M:%S')])
     deposits.append(t)
-for d in deposits:
-    print(d)        
         
 response = requests.get(poolurl)
 lines = csv.reader(response.text.splitlines() , delimiter=',')
