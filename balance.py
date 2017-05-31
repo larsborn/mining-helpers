@@ -43,6 +43,34 @@ class trade(object):
     def __eq__(self, other):
         return self.tid == other.tid
         
+class deposit(object):
+    def __init__(self, row):
+        self.tid            = row[0]
+        self.amount         = float(row[1])
+        self.time           = parse_date(row[2])
+    
+    def __repr__(self):
+        return '<Deposit %s; %s; %s>' % (
+            self.tid, self.amount, self.time
+        )
+
+    def __eq__(self, other):
+        return self.tid == other.tid
+
+class withdrawal(object):
+    def __init__(self, row):
+        self.tid            = row[0]
+        self.amount         = float(row[1])
+        self.time           = parse_date(row[2])
+    
+    def __repr__(self):
+        return '<Withdrawal %s; %s; %s>' % (
+            self.tid, self.amount, self.time
+        )
+
+    def __eq__(self, other):
+        return self.tid == other.tid
+        
 class SEPA(object):
     def __init__(self, row):
         self.time           = parse_date(row[1]).replace(hour=23, minute=59)
@@ -95,6 +123,18 @@ for key, group in groupby(trades, lambda x: x.tid):
     tmptrades.append(t)
 trades = tmptrades 
         
+d = k.query_private('Ledgers', {'type':'withdrawal', 'asset':'ZEUR'})
+for dl in d['result']['ledger']:
+    t = withdrawal([d['result']['ledger'][dl]['refid'], d['result']['ledger'][dl]['amount'], datetime.datetime.fromtimestamp(d['result']['ledger'][dl]['time']).strftime('%Y-%m-%d %H:%M:%S')])
+    withdrawals.append(t)
+    
+d = k.query_private('Ledgers', {'type':'deposit', 'asset':'XETH'})
+for dl in d['result']['ledger']:
+    t = deposit([d['result']['ledger'][dl]['refid'], d['result']['ledger'][dl]['amount'], datetime.datetime.fromtimestamp(d['result']['ledger'][dl]['time']).strftime('%Y-%m-%d %H:%M:%S')])
+    deposits.append(t)
+for d in deposits:
+    print(d)        
+        
 response = requests.get(poolurl)
 lines = csv.reader(response.text.splitlines() , delimiter=',')
 for line in lines:
@@ -107,7 +147,7 @@ for line in islice(lines, 7, None):
     t = SEPA(line)
     sepas.append(t)
 
-result = trades + mines + sepas
+result = trades + mines + sepas + withdrawals + deposits
 result.sort(key=lambda x: x.time, reverse=False)
 
 
@@ -139,6 +179,10 @@ for res in result:
             untraded += income
             missingtrades+=1
             income = 0
+    elif type(res) == deposit:
+        print("[%s]\tdeposit of %f ETH on Kraken." % (res.time.strftime("%Y-%m-%d %H:%M:%S"), res.amount))
+    elif type(res) == withdrawal:
+        print("[%s]\tWithdrawal of %f € from Kraken." % (res.time.strftime("%Y-%m-%d %H:%M:%S"), res.amount))
     elif type(res) == mined:
         income += res.amount
         print("[%s]\tMined %f ETH. Balance is %f ETH" % (res.time.strftime("%Y-%m-%d %H:%M:%S"), res.amount, income))
