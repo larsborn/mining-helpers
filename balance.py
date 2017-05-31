@@ -43,7 +43,7 @@ class trade(object):
         
 class SEPA(object):
     def __init__(self, row):
-        self.time           = parse_date(row[1])
+        self.time           = parse_date(row[1]).replace(hour=23, minute=59)
         self.tid            = row[4]
         if row[3] == "Überweisung":
             self.withdrawal = True
@@ -74,14 +74,12 @@ lines = csv.reader(response.text.splitlines() , delimiter=',')
 for line in lines:
     t = mined(line)
     mines.append(t)
-mines.sort(key=lambda x: x.time, reverse=False)
         
 response = requests.get(bankurl)
 lines = csv.reader(response.text.splitlines() , delimiter=';')
 for line in islice(lines, 7, None):
     t = SEPA(line)
     sepas.append(t)
-sepas.sort(key=lambda x: x.time, reverse=False)
 
 result = trades + mines + sepas
 result.sort(key=lambda x: x.time, reverse=False)
@@ -137,6 +135,6 @@ for res in result:
         income = 0
     #print(res)
 print("--------------------------------------------------------------------------")
-print("Kraken: %f ETH, Kraken: %f €, Giro: %f €" % (income,eurobalance,girobalance))
+print("Kraken: %f ETH, Kraken: %f €, Giro: %f €, Sum: %f €" % (income,eurobalance,girobalance,eurobalance+girobalance))
 print("Fees: %f ETH, %f €" % (ethfees,eurofees))
 print("%f ETH got lost, %f ETH were untraded but probably withdrawn.\nAt least %i Trades seem to be missing. Also %i trades were carried out without balance." % (missing,untraded,missingtrades,missingincome))
