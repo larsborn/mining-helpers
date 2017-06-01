@@ -178,4 +178,5 @@ for d in ebalance:
 
 print("Pool\t\tExchange\tExchange\tBank")
 print("%f ETH\t%f ETH\t%f €\t%f €" % (ETH_P, ETH_E, EUR_E, EUR_B))
-print("%f ETH, %f €, %f €" % (ETH_PtoE_Fee, EUR_Trade_Fee, EUR_EtoB_Fee))
+print("Tx Fees\t\tTrade Fees\tWithdrawal Fees")
+print("%f ETH\t%f €\t%f €" % (ETH_PtoE_Fee, EUR_Trade_Fee, EUR_EtoB_Fee))
