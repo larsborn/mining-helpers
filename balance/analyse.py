@@ -2,6 +2,7 @@ import configparser
 from sqlalchemy.orm import sessionmaker
 from lib import *
 import pprint
+import csv
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -145,6 +146,7 @@ EUR_Trade_Fee = 0
 EUR_E = 0
 EUR_EtoB_Fee = 0
 EUR_B = 0
+j = journal('analyse.journal')
 
 for s in balance:
     if s['sepa'].withdrawal == False:
@@ -159,7 +161,18 @@ for s in balance:
                 ETH_E += d['d'].amount
                 ETH_PtoE_Fee += d['mine'].amount-d['d'].amount
                 ETH_P -= d['mine'].amount
-    EUR_B += s['sepa'].amount
+                j.symmetricFee(d['d'].time, d['mine'].time, d['mine'].tid, -d['mine'].amount, d['d'].amount, "Income:Gutemine", "Assets:Kraken ETH", "ETH", "Fees:ETH Transfer")
+            j.asymmetricFee(t['t'].time, None, t['t'].tid, -t['t'].amount_eth, t['t'].amount_euro-t['t'].fee, "Assets:Kraken ETH", "Assets:Kraken EUR", "ETH", "EUR", "Fees:Trade", "manual", t['t'].fee, "EUR")
+        EUR_B += s['sepa'].amount
+        j.symmetricFee(s['withdrawal']['w'].time, s['sepa'].time, s['sepa'].tid, s['withdrawal']['w'].amount - 0.09, s['sepa'].amount, "Assets:Kraken EUR", "Assets:ING DiBa", "EUR", "Fees:EUR Transfer")
+    else:
+        EUR_B += s['sepa'].amount
+        if "Strom" in s['sepa'].tid:
+            j.symmetric(s['sepa'].time, None, s['sepa'].tid, -s['sepa'].amount, "Assets:ING DiBa", "Expenses:Power", "EUR")
+        elif "Hardware" in s['sepa'].tid:
+            j.symmetric(s['sepa'].time, None, s['sepa'].tid, -s['sepa'].amount, "Assets:Investment", "Expenses:Hardware", "EUR")
+        else:
+            j.symmetric(s['sepa'].time, None, s['sepa'].tid, -s['sepa'].amount, "Assets", "Expenses", "EUR")
     
 for t in obalance:
     ETH_E -= t['trade'].amount_eth
@@ -170,11 +183,14 @@ for t in obalance:
         ETH_E += d['d'].amount
         ETH_PtoE_Fee += d['mine'].amount-d['d'].amount
         ETH_P -= d['mine'].amount
+        j.symmetricFee(d['d'].time, d['mine'].time, d['mine'].tid, -d['mine'].amount, d['d'].amount, "Income:Gutemine", "Assets:Kraken ETH", "ETH", "Fees:ETH Transfer")
+    j.asymmetricFee(t['trade'].time, None, t['trade'].tid, -t['trade'].amount_eth, t['trade'].amount_euro-t['trade'].fee, "Assets:Kraken ETH", "Assets:Kraken EUR", "ETH", "EUR", "Fees:Trade", "manual", t['trade'].fee, "EUR")
     
 for d in ebalance:
     ETH_E += d['deposit'].amount
     ETH_PtoE_Fee += d['mine'].amount-d['d'].amount
     ETH_P -= d['mine'].amount
+    j.symmetricFee(d['deposit'].time, d['mine'].time, d['mine'].tid, -d['mine'].amount, d['deposit'].amount, "Income:Gutemine", "Assets:Kraken ETH", "ETH", "Fees:ETH Transfer")
 
 print("Pool\t\tExchange\tExchange\tBank")
 print("%f ETH\t%f ETH\t%f €\t%f €" % (ETH_P, ETH_E, EUR_E, EUR_B))

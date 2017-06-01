@@ -128,3 +128,51 @@ class SEPA(Base):
         
     def __hash__(self):
         return hash(self.tid)
+        
+class journal(object):
+    def __init__(self, filename):
+        self.f = open(filename, 'w')
+        
+    def symmetric(self, time1, time2, desc, amount, account1, account2, currency):
+        if not time2 == None:
+            self.f.write('%s=%s %s\n' % (time1.strftime('%Y/%m/%d'), time2.strftime('%Y/%m/%d'), desc))
+        else:
+            self.f.write('%s %s\n' % (time1.strftime('%Y/%m/%d'), desc))
+        self.f.write('\t%s  %s%f\n' % (account1, currency, -amount))
+        self.f.write('\t%s  %s%f\n' % (account2, currency, amount))
+        self.f.write('\n')
+    
+    def symmetricFee(self, time1, time2, desc, amount1, amount2, account1, account2, currency, feeaccount, feetype = "auto", feeamount = 0):
+        if not time2 == None:
+            self.f.write('%s=%s %s\n' % (time1.strftime('%Y/%m/%d'), time2.strftime('%Y/%m/%d'), desc))
+        else:
+            self.f.write('%s %s\n' % (time1.strftime('%Y/%m/%d'), desc))
+        self.f.write('\t%s  %s%f\n' % (account1, currency, amount1))
+        self.f.write('\t%s  %s%f\n' % (account2, currency, amount2))
+        if feetype == "auto":
+            self.f.write('\t%s\n' % (feeaccount))
+        else:
+            self.f.write('\t%s  %s%f\n' % (feeaccount, currency, feeamount))
+        self.f.write('\n')
+    
+    def asymmetric(self, time1, time2, desc, amount1, amount2, account1, account2, currency1, currency2):
+        if not time2 == None:
+            self.f.write('%s=%s %s\n' % (time1.strftime('%Y/%m/%d'), time2.strftime('%Y/%m/%d'), desc))
+        else:
+            self.f.write('%s %s\n' % (time1.strftime('%Y/%m/%d'), desc))
+        self.f.write('\t%s  %s%f\n' % (account1, currency1, amount1))
+        self.f.write('\t%s  %s%f\n' % (account2, currency2, amount2))
+        self.f.write('\n')
+        
+    def asymmetricFee(self, time1, time2, desc, amount1, amount2, account1, account2, currency1, currency2, feeaccount, feetype = "auto", feeamount = 0, feecurrency = ""):
+        if not time2 == None:
+            self.f.write('%s=%s %s\n' % (time1.strftime('%Y/%m/%d'), time2.strftime('%Y/%m/%d'), desc))
+        else:
+            self.f.write('%s %s\n' % (time1.strftime('%Y/%m/%d'), desc))
+        self.f.write('\t%s  %s%f\n' % (account1, currency1, amount1))
+        self.f.write('\t%s  %s%f\n' % (account2, currency2, amount2))
+        if feetype == "auto":
+            self.f.write('\t%s\n' % (feeaccount))
+        else:
+            self.f.write('\t%s  %s%f\n' % (feeaccount, feecurrency, feeamount))
+        self.f.write('\n')
