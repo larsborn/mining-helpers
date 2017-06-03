@@ -188,7 +188,7 @@ for t in obalance:
     
 for d in ebalance:
     ETH_E += d['deposit'].amount
-    ETH_PtoE_Fee += d['mine'].amount-d['d'].amount
+    ETH_PtoE_Fee += d['mine'].amount-d['deposit'].amount
     ETH_P -= d['mine'].amount
     j.symmetricFee(d['deposit'].time, d['mine'].time, d['mine'].tid, -d['mine'].amount, d['deposit'].amount, "Income:Gutemine", "Assets:Kraken ETH", "ETH", "Fees:ETH Transfer")
 
