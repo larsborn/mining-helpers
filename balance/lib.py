@@ -108,7 +108,7 @@ class SEPA(Base):
     withdrawal  = Column(Boolean)
     amount      = Column(Float)
     def __init__(self, row):
-        self.time           = parse_date(row[1]).replace(hour=23, minute=59)
+        self.time           = parse_date(row[1],dayfirst=True).replace(hour=23, minute=59)
         self.tid            = row[4]
         if row[3] == "Überweisung":
             self.withdrawal = True
