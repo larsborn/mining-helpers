@@ -92,7 +92,7 @@ session = Session()
 def insert_if_new(session, t):
     q = session.query(type(t)).filter(type(t).tid==t.tid)
     if len(q.all()) == 0:
-        print("New Record with id %s" % t.tid)
+        print("New Record with id %s for %s" % (t.tid, type(t).__table__))
         session.add(t)
     else:
         print("Record with id %s already exists in %s" % (t.tid, type(t).__table__))
