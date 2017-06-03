@@ -58,7 +58,7 @@ for dl in d['result']['ledger']:
     t = deposit([d['result']['ledger'][dl]['refid'], d['result']['ledger'][dl]['amount'], datetime.datetime.fromtimestamp(d['result']['ledger'][dl]['time']).strftime('%Y-%m-%d %H:%M:%S')])
     deposits.append(t)
         
-url = 'http://dwarfpool.com/eth/address/?wallet=%s' % wallet
+url = 'http://dwarfpool.com/eth/address/?wallet=%s&allpayouts=1' % wallet
 html_doc = requests.get(url).content
 soup = BeautifulSoup(html_doc, 'html.parser')
 
