@@ -6,6 +6,7 @@ import datetime
 from lib import *
 from sqlalchemy.orm import sessionmaker
 from itertools import islice,groupby
+from bs4 import BeautifulSoup
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -13,6 +14,7 @@ bankurl = config['DEFAULT']['bankurl']
 exchangeurl = config['DEFAULT']['exchangeurl']
 poolurl = config['DEFAULT']['poolurl']
 db_conn = config['DEFAULT']['db_conn']
+wallet = config['DEFAULT']['wallet']
   
 trades      = []
 mines       = []
@@ -58,11 +60,17 @@ for dl in d['result']['ledger']:
     t = deposit([d['result']['ledger'][dl]['refid'], d['result']['ledger'][dl]['amount'], datetime.datetime.fromtimestamp(d['result']['ledger'][dl]['time']).strftime('%Y-%m-%d %H:%M:%S')])
     deposits.append(t)
         
-response = requests.get(poolurl)
-lines = csv.reader(response.text.splitlines() , delimiter=',')
-for line in lines:
-    t = mined(line)
-    mines.append(t)
+url = 'http://dwarfpool.com/eth/address/?wallet=%s' % wallet
+html_doc = requests.get(url).content
+soup = BeautifulSoup(html_doc, 'html.parser')
+
+tbodys = soup.find_all('tbody')
+if len(tbodys) > 0:
+    tbody = tbodys[0]
+    tds = tbody.find_all('td')
+    for i in range(0, len(tds), 3):
+        t = mined([tds[i+2].get_text(),wallet,tds[i].get_text(),tds[i+1].get_text()])
+        mines.append(t)
         
 response = requests.get(bankurl)
 lines = csv.reader(response.text.splitlines() , delimiter=';')
