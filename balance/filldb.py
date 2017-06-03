@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 config = configparser.ConfigParser()
 config.read('config.ini')
 bankurl = config['DEFAULT']['bankurl']
+bankislocal = config['DEFAULT']['bankislocal']
 db_conn = config['DEFAULT']['db_conn']
 wallet = config['DEFAULT']['wallet']
   
@@ -69,9 +70,14 @@ if len(tbodys) > 0:
     for i in range(0, len(tds), 3):
         t = mined([tds[i+2].get_text(),wallet,tds[i].get_text(),tds[i+1].get_text()])
         mines.append(t)
-        
-response = requests.get(bankurl)
-lines = csv.reader(response.text.splitlines() , delimiter=';')
+
+if bankislocal:
+    print("using Local bank file")
+    csvfile = open(bankurl, newline='', encoding='latin-1')
+else:
+    response = requests.get(bankurl)    
+    csvfile = response.text.splitlines()
+lines = csv.reader(csvfile, delimiter=';')
 for line in islice(lines, 7, None):
     t = SEPA(line)
     sepas.append(t)
