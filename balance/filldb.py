@@ -11,8 +11,6 @@ from bs4 import BeautifulSoup
 config = configparser.ConfigParser()
 config.read('config.ini')
 bankurl = config['DEFAULT']['bankurl']
-exchangeurl = config['DEFAULT']['exchangeurl']
-poolurl = config['DEFAULT']['poolurl']
 db_conn = config['DEFAULT']['db_conn']
 wallet = config['DEFAULT']['wallet']
   
