@@ -24,5 +24,5 @@ trade = api.query_private('AddOrder', {
 if 'error' in trade.keys() and len(trade['error']) > 0:
     order = 'KRAKEN API ERROR: %s' % '\n'.join(trade['error'])
 else:
-    order = trade['result']['descr']['txid']
+    order = trade['result']['txid']
 zabbix.send_item('id.%s.order' % source_currency.lower(), order)
