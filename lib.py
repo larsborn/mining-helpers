@@ -2,6 +2,7 @@ import subprocess
 import re
 import os
 import csv
+import platform
 from dateutil.parser import parse as parse_date
 import datetime
 
@@ -11,12 +12,16 @@ class ZabbixSenderException(Exception):
 
 
 class ZabbixSender(object):
-    def __init__(self, sender_path, config_path):
+    def __init__(self, sender_path=None, config_path=None):
         self.r_processed = re.compile('processed: (\d+);')
         self.r_failed = re.compile('failed: (\d+);')
         self.r_total = re.compile('total: (\d+);')
-        self.sender_path = sender_path
-        self.config_path = config_path
+        if sender_path is None:
+            sender_path = 'C:\\zabbix_sender.exe' if platform.system() == 'Windows' else '/usr/bin/zabbix_sender'
+        else: self.sender_path = sender_path
+        if config_path is None:
+            config_path = 'C:\\zabbix_agentd.conf' if platform.system() == 'Windows' else '/etc/zabbix/zabbix_agentd.conf'
+        else: self.config_path = config_path
 
         self.last_command = None
 
