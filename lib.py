@@ -16,12 +16,20 @@ class ZabbixSender(object):
         self.r_processed = re.compile('processed: (\d+);')
         self.r_failed = re.compile('failed: (\d+);')
         self.r_total = re.compile('total: (\d+);')
+
         if sender_path is None:
-            sender_path = 'C:\\zabbix_sender.exe' if platform.system() == 'Windows' else '/usr/bin/zabbix_sender'
-        else: self.sender_path = sender_path
+            self.sender_path = 'C:\\zabbix_sender.exe' \
+                if platform.system() == 'Windows' \
+                else '/usr/bin/zabbix_sender'
+        else:
+            self.sender_path = sender_path
+
         if config_path is None:
-            config_path = 'C:\\zabbix_agentd.conf' if platform.system() == 'Windows' else '/etc/zabbix/zabbix_agentd.conf'
-        else: self.config_path = config_path
+            self.config_path = 'C:\\zabbix_agentd.conf' \
+                if platform.system() == 'Windows' \
+                else '/etc/zabbix/zabbix_agentd.conf'
+        else:
+            self.config_path = config_path
 
         self.last_command = None
 
