@@ -74,7 +74,7 @@ class ClaymoreMinerStats(object):
 
         eth_hashrates = eth_hashrates.split(';')
         stats = gpu_stats.split(';')
-        if len(stats): assert (len(stats) == len(eth_hashrates) * 2)
+        # if len(stats): assert (len(stats) == len(eth_hashrates) * 2)
 
         self.gpus = []
         for i, hashrate in enumerate(eth_hashrates):
