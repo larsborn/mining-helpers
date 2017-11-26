@@ -79,9 +79,12 @@ class ClaymoreMinerStats(object):
         self.gpus = []
         for i, hashrate in enumerate(eth_hashrates):
             if stats:
-                temperature = stats[i * 2]
-                fan_speed = stats[i * 2 + 1]
-                self.gpus.append(GpuStats(hashrate, temperature, fan_speed))
+                try:
+                    temperature = stats[i * 2]
+                    fan_speed = stats[i * 2 + 1]
+                    self.gpus.append(GpuStats(hashrate, temperature, fan_speed))
+                except IndexError:
+                   pass
             else:
                 self.gpus.append(GpuStats(hashrate))
 
